@@ -13,8 +13,10 @@ protected:
     int userID;
     string name;
     string email;
+    string password;
+    string usertype;
 public:
-    User(int id, string n, string e) : userID(id), name(n), email(e) {}
+    User(int id, string n, string e, string p, string ut) : userID(id), name(n), email(e), password(p), usertype(ut) {}
 
     virtual void viewProfile(){
         cout<<"UserID: "<<userID<<endl;
@@ -29,13 +31,25 @@ public:
     int getUserID() const{
         return userID;
     }
+    string getUserEmail(){
+        return email;
+    }
+    string getUserName(){
+        return name;
+    }
+    string getUserPassword(){
+        return password;
+    }
+    string getUserType(){
+        return usertype;
+    }
 };
 
 class Participant: public User{
 private:
     vector<int>registeredEvents;
 public:
-    Participant(int id, string n, string e) : User(id,n,e) {}
+    Participant(int id, string n, string e, string p, string ut) : User(id,n,e,p,ut) {}
 
     void registerEvent(int eventID){
         registeredEvents.push_back(eventID);
@@ -53,10 +67,11 @@ public:
 
 class Admin: public User{
 public:
-    Admin(int id, string n, string e) : User(id,n,e) {}
+    Admin(int id, string n, string e, string p, string ut) : User(id,n,e,p,ut) {}
 
 
 };
+
 
 
 
@@ -150,8 +165,21 @@ class EventManager {
 private:
     vector<Event*> events;
     vector<User*> users;
+    vector<Participant*> participants;
+    vector<Admin*> admins;
 public:
     void addUser(User* user) {
+        if(user->getUserType() == "Participant"){
+            Participant* p = new Participant(user->getUserID(), user->getUserName(), user->getUserEmail(), user->getUserPassword(), user->getUserType());
+
+            participants.push_back(p); 
+        }
+        if(user->getUserType() == "Admin"){
+            Admin* a = new Admin(user->getUserID(), user->getUserName(), user->getUserEmail(), user->getUserPassword(), user->getUserType());
+
+            admins.push_back(a); 
+        }
+
         users.push_back(user);
     }
     void displayAllUsers(){
@@ -176,7 +204,15 @@ public:
 
 
 
-    User* findUser(int userID) {
+    User* findUser(string userEmail) {
+        for (User* user : users) {
+            if (user->getUserEmail() == userEmail) {
+                return user;
+            }
+        }
+        return nullptr;
+    }
+    User* findUserId(int userID) {
         for (User* user : users) {
             if (user->getUserID() == userID) {
                 return user;
@@ -196,37 +232,121 @@ public:
 };
 
 
+int uniqueIdGenerator(){
+    int suffix = rand()%10000;
+    return suffix;
+}
+
+void participantDashboard(User* user){
+// --------------------------------------------------------------------------------------------------------------
+// dynamic_cast is used to typecast one class to another. Here I've casted User* user to Participant* as I'm sure that user is a Participant and can be sucessfully casted.
+// --------------------------------------------------------------------------------------------------------------
+    Participant* puser = dynamic_cast<Participant*>(user);
+    decor();
+    cout<<"Welcome Participant! Here is your profile: "<<endl;
+    puser->viewProfile();
+    decor();
+
+    int choice;
+    while(1){
+        cout<<"1. Log Out"<<endl;
+        cin>>choice;
+        switch (choice){
+            case 1 :{
+                cout<<"Successfully Logged Out"<<endl;
+                return;
+            }
+            default:
+                break;
+        }
+    }
+
+}
+
+void adminDashboard(User* user){
+    decor();
+    Admin* auser = dynamic_cast<Admin*>(user);
+    auser->viewProfile();
+}
 
 int main(){
     EventManager ems;
+
+    int flag = 1;
+    while(flag){
+        decor();
+        int choice;
+        cout<<"1. Log In"<<endl;        
+        cout<<"2. Sign Up"<<endl;
+        cout<<"3. Exit"<<endl;
+        cout<<"Enter Your Choice: "; cin>>choice;
+
+        switch (choice)
+        {
+            case 1: {
+                decor();
+                string email; string password;
+                cout<<"Enter email: "; cin>>email;
+                cout<<"Enter password: "; cin>>password;
+                User* user = ems.findUser(email);
+
+                if(!user){
+                    cout<<"No such user exists!"<<endl;
+                    break;
+                }
+                if(user->getUserPassword() != password){
+                    cout<<"Wrong Password!"<<endl;
+                    break;
+                }
+
+                cout<<"You're logged in as "<<user->getUserName()<<"!"<<endl;
+                if(user->getUserType() == "Participant"){
+                    participantDashboard(user);
+                }
+                else if(user->getUserType() == "Admin"){
+                    adminDashboard(user);
+                }
+
+                break;
+            }
+            
+            case 2: {
+                decor();
+                string name, email, password;
+                cout<<"Enter Name: "; cin>>name;
+                cout<<"Enter email: "; cin>>email;
+                cout<<"Enter password: "; cin>>password;
+                string ut = "Participant";
+                int uid;
+                while(1){
+                    uid = uniqueIdGenerator();
+                    if(!ems.findUserId(uid)) break;
+                }
+                Participant* p = new Participant(uid, name, email, password, ut);
+                ems.addUser(p);
+                cout<<"Account successfully created!"<<endl;
+                
+                participantDashboard(p);
+
+                break;
+            }
+
+            case 3: {
+                decor();
+                cout<<endl;
+                cout<<"Adieu!"<<endl;
+                decor();
+                flag = 0;
+                break;
+            }
+
+            default:
+                break;
+
+        }
+
+    }
     
-    Participant* p1 = new Participant(1, "John Doe", "john@example.com");
-    Admin* a1 = new Admin(2, "Admin User", "admin@example.com");
-
-    ems.addUser(p1);
-    ems.addUser(a1);
-
-    Competition* c1 = new Competition(1, "Coding Competition", "2024-06-20", 1000.0, 500.0);
-    Program* pr1 = new Program(2, "AI Workshop", "2024-06-21", 1500.0, "Workshop");
-    Session* s1 = new Session(3, "Tech Talk", "2024-06-22", 500.0, "Dr. Smith");
-
-    ems.addEvent(c1);
-    ems.addEvent(pr1);
-    ems.addEvent(s1);
-
-    p1->registerEvent(1);
-    p1->registerEvent(2);
-
-    // p1->viewRegisteredEvents();
-
-    // ems.displayAllEvents();
-    ems.displayAllUsers();
-
-    delete p1;
-    delete a1;
-    delete c1;
-    delete pr1;
-    delete s1;
 
     return 0;
 }

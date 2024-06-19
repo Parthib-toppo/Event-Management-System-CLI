@@ -39,6 +39,7 @@ public:
         cout<<"Enter 1 to edit email otherwise 0 to continue: "; cin>>ff;
         if(ff == 1){
             cout << "Enter new Email: ";
+            cin.ignore();
             getline(cin, newEmail);
             ff = 0;
         }
@@ -56,7 +57,7 @@ public:
 
         cout << "Profile updated successfully!" << endl;
     }
-    virtual bool cancelEvent(int eid){}
+    virtual bool cancelEvent(int eid){return false;}
     
 
     int getUserID() const{
@@ -73,6 +74,15 @@ public:
     }
     string getUserType(){
         return usertype;
+    }
+
+
+    virtual void saveToFile(ofstream& fout){
+        fout << userID <<","<< email <<","<< name <<","<< password <<","<< usertype;
+    }
+
+    virtual void loadFromFile(istringstream& ss){
+        cout<<"admin"<<endl;
     }
 };
 
@@ -102,7 +112,34 @@ public:
     vector<int> viewRegisteredEvents(){
         return registeredEvents;
     }
+    
 
+    void saveToFile(ofstream& fout) override{
+        User::saveToFile(fout);
+        int num = registeredEvents.size();
+        fout <<","<<num;
+        for(auto it: registeredEvents){
+            fout<<","<<it;
+        }
+        fout<<endl;
+    }
+
+    void loadFromFile(istringstream& ss) override{
+        string token;
+        getline(ss,token,',');
+        int num = stoi(token);
+        registeredEvents.resize(num);
+        // cout<<token<<endl;
+
+        for(int i = 0; i<num; i++){
+            getline(ss,token,',');
+            // cout<<token<<endl;
+            int x = stoi(token);
+            registeredEvents[i] = x;
+        }
+        // for(auto it: registeredEvents) cout<<it<<" ";
+        // cout<<endl;
+    }
 };
 
 class Admin: public User{
@@ -113,6 +150,12 @@ public:
     void editProfile() override{
         cout<<"Editting Admin profile..."<<endl;
         User::editProfile();
+    }
+
+
+    void saveToFile(ofstream& fout) override{
+        User::saveToFile(fout);
+        fout<<endl;
     }
 };
 
@@ -166,17 +209,22 @@ public:
         int ff;
         cout<<"Enter 1 to edit name otherwise 0 to continue: "; cin>>ff;
         if(ff == 1){
-            cout<<"Enter new name: "; cin>>newname;
+            cout<<"Enter new name: ";
+            cin.ignore();
+            getline(cin,newname);
             ff = 0;
         }
         cout<<"Enter 1 to edit date otherwise 0 to continue: "; cin>>ff;
         if(ff == 1){
-            cout<<"Enter new date: "; cin>>date;
+            cout<<"Enter new date: ";
+            cin.ignore();
+            getline(cin,date);
             ff = 0;
         }
         cout<<"Enter 1 to edit budget otherwise 0 to continue: "; cin>>ff;
         if(ff == 1){
-            cout<<"Enter new budget: "; cin>>bud;
+            cout<<"Enter new budget: ";
+            cin>>bud;
             ff = 0;
         }
 
@@ -195,6 +243,14 @@ public:
         cout<<"|"<<"Event Date: "<<eventDate<<endl;
         cout<<"|"<<"Event ID: "<<eventID<<endl;
     }
+
+
+    virtual void saveToFile(ofstream &fout){
+        fout<<eventID<<','<<eventName<<','<<eventDate<<','<<budget<<','<<eventType;
+    }
+    virtual void loadFromFile(ifstream &fin){
+        cout<<"pussy"<<endl;
+    }
 };
 
 class Competition : public Event {
@@ -203,8 +259,8 @@ private:
 public:
     Competition(int id, string name, string date, double bud, double p, string et) : Event(id, name, date, bud, et), prize(p) {}
 
-    void viewCompetitionDetails() {
-        viewEventDetails();
+    void viewEventDetails() {
+        Event::viewEventDetails();
         cout << "Prize: " << prize << endl;
     }
     void viewPrize(){
@@ -216,37 +272,23 @@ public:
     }
 
     void editEventDetails() override{
-        string newname = eventName, date = eventDate; double bud = budget;
+        Event::editEventDetails();
         double newprize = prize;
         int ff;
-        cout<<"Enter 1 to edit name otherwise 0 to continue: "; cin>>ff;
-        if(ff == 1){
-            cout<<"Enter new name: "; cin>>newname;
-            ff = 0;
-        }
-        cout<<"Enter 1 to edit date otherwise 0 to continue: "; cin>>ff;
-        if(ff == 1){
-            cout<<"Enter new date: "; cin>>date;
-            ff = 0;
-        }
-        cout<<"Enter 1 to edit budget otherwise 0 to continue: "; cin>>ff;
-        if(ff == 1){
-            cout<<"Enter new budget: "; cin>>bud;
-            ff = 0;
-        }
-
         cout<<"Enter 1 to edit prize otherwise 0 to continue: "; cin>>ff;
         if(ff == 1){
             cout<<"Enter new prize: "; cin>>newprize;
             ff = 0;
         }
-
-        eventName = newname;
-        eventDate = date;
-        budget = bud;
         prize = newprize;
     }
 
+
+    void saveToFile(ofstream &fout) override{
+        Event::saveToFile(fout);
+        fout<<','<<prize<<endl;
+    }
+    
 };
 
 class Program : public Event {
@@ -255,8 +297,8 @@ private:
 public:
     Program(int id, string name, string date, double bud, string type, string et) : Event(id, name, date, bud, et), programType(type) {}
 
-    void viewProgramDetails() {
-        viewEventDetails();
+    void viewEventDetails() {
+        Event::viewEventDetails();
         cout << "Program Type: " << programType << endl;
     }
     void viewProgramType(){
@@ -268,35 +310,23 @@ public:
     }
 
     void editEventDetails() override{
-        string newname = eventName, date = eventDate; double bud = budget;
+        Event::editEventDetails();
         string newprogtype = programType;
         int ff;
-        cout<<"Enter 1 to edit name otherwise 0 to continue: "; cin>>ff;
+        cout<<"Enter 1 to edit program type otherwise 0 to continue: "; cin>>ff;
         if(ff == 1){
-            cout<<"Enter new name: "; cin>>newname;
+            cout<<"Enter new program type: ";
+            cin.ignore();
+            getline(cin,newprogtype);
             ff = 0;
         }
-        cout<<"Enter 1 to edit date otherwise 0 to continue: "; cin>>ff;
-        if(ff == 1){
-            cout<<"Enter new date: "; cin>>date;
-            ff = 0;
-        }
-        cout<<"Enter 1 to edit budget otherwise 0 to continue: "; cin>>ff;
-        if(ff == 1){
-            cout<<"Enter new budget: "; cin>>bud;
-            ff = 0;
-        }
-
-        cout<<"Enter 1 to edit prize otherwise 0 to continue: "; cin>>ff;
-        if(ff == 1){
-            cout<<"Enter new program type: "; cin>>newprogtype;
-            ff = 0;
-        }
-
-        eventName = newname;
-        eventDate = date;
-        budget = bud;
         programType = newprogtype;
+    }
+
+
+    void saveToFile(ofstream &fout) override{
+        Event::saveToFile(fout);
+        fout<<','<<programType<<endl;
     }
 
 };
@@ -307,8 +337,8 @@ private:
 public:
     Session(int id, string name, string date, double bud, string spk, string et) : Event(id, name, date, bud, et), speaker(spk) {}
 
-    void viewSessionDetails() {
-        viewEventDetails();
+    void viewEventDetails() {
+        Event::viewEventDetails();
         cout << "Speaker: " << speaker << endl;
     }
     void viewSpeaker(){
@@ -320,35 +350,24 @@ public:
     }
 
     void editEventDetails() override{
-        string newname = eventName, date = eventDate; double bud = budget;
+        Event::editEventDetails();
         string newspkr = speaker;
         int ff;
-        cout<<"Enter 1 to edit name otherwise 0 to continue: "; cin>>ff;
+        cout<<"Enter 1 to edit speaker otherwise 0 to continue: "; cin>>ff;
         if(ff == 1){
-            cout<<"Enter new name: "; cin>>newname;
+            cout<<"Enter new speaker: ";
+            cin.ignore();
+            getline(cin,newspkr);
             ff = 0;
         }
-        cout<<"Enter 1 to edit date otherwise 0 to continue: "; cin>>ff;
-        if(ff == 1){
-            cout<<"Enter new date: "; cin>>date;
-            ff = 0;
-        }
-        cout<<"Enter 1 to edit budget otherwise 0 to continue: "; cin>>ff;
-        if(ff == 1){
-            cout<<"Enter new budget: "; cin>>bud;
-            ff = 0;
-        }
-
-        cout<<"Enter 1 to edit prize otherwise 0 to continue: "; cin>>ff;
-        if(ff == 1){
-            cout<<"Enter new speaker: "; cin>>newspkr;
-            ff = 0;
-        }
-
-        eventName = newname;
-        eventDate = date;
-        budget = bud;
         speaker = newspkr;
+    }
+
+
+
+    void saveToFile(ofstream &fout) override{
+        Event::saveToFile(fout);
+        fout<<','<<speaker<<endl;
     }
 
 };
@@ -444,6 +463,102 @@ public:
             if(it->getEventType() == etype) v.push_back(it);
         }
         return v;
+    }
+
+    
+    
+    void saveData(){
+        ofstream userfile("users.txt");
+        for(auto it: users){
+            it->saveToFile(userfile);
+        }
+        userfile.close();
+
+        ofstream eventfile("events.txt");
+        for(auto it: events){
+            it->saveToFile(eventfile);
+        }
+        eventfile.close();
+    }
+
+    void loadData(){
+        ifstream userfile("users.txt");
+        string line;
+        while(getline(userfile,line)){
+            // cout<<line<<endl;
+            // continue;
+            User* user = NULL;
+            int id;
+            string email, name, password, ut;
+            istringstream ss(line);
+            string token;
+
+            getline(ss,token,',');
+            id = stoi(token);
+                
+            getline(ss,email,',');
+            getline(ss,name,',');
+            getline(ss,password,',');
+            getline(ss,ut,',');
+
+            // cout<<id<<" "<<email<<" "<<name<<" "<<password<<" "<<ut<<endl;
+
+            if(line.find("Admin")==string::npos){
+                user = new Participant(id,name,email,password,ut);
+                user->loadFromFile(ss);
+                // cout<<id<<" "<<email<<" "<<name<<" "<<password<<" "<<ut<<" "<<x<<" "<<y<<" "<<z<<endl;
+            }
+            else{
+                user = new Admin(id,name,email,password,ut);
+            }
+            
+            users.push_back(user);
+        }
+        userfile.close();
+
+        ifstream eventfile("events.txt");
+        while(getline(eventfile,line)){
+            Event* event = NULL;
+            int eid;
+            string ename, edate, etype;
+            double ebud;
+
+            istringstream ss(line);
+            string token;
+            getline(ss,token,',');
+            eid = stoi(token);
+
+            getline(ss,ename,',');
+            getline(ss,edate,',');
+
+            getline(ss,token,',');
+            ebud = stod(token);
+
+            getline(ss,etype,',');
+
+            if(etype == "Competition"){
+                int eprize;
+                getline(ss,token,',');
+                eprize = stod(token);
+
+                event = new Competition(eid,ename,edate,ebud,eprize,etype);
+            }
+            else if(etype == "Program"){
+                string pt;
+                getline(ss,pt,',');
+
+                event = new Program(eid,ename,edate,ebud,pt,etype);
+            }
+            else{
+                string spk;
+                getline(ss,spk,',');
+
+                event = new Session(eid,ename,edate,ebud,spk,etype);
+            }
+
+            events.push_back(event);
+        }
+        eventfile.close();
     }
 };
 
@@ -660,10 +775,14 @@ void adminDashboard(User* user, EventManager &ems){
                     cout << "Enter Prize: "; cin >> prize;
                     ems.addEvent(new Competition(id, name, date, budget, prize, eventType));
                 } else if(eventType == "Program") {
-                    string progtype; cin.ignore(); getline(cin,progtype);
+                    string progtype; 
+                    cout<<"Enter program type: ";
+                    cin.ignore(); getline(cin,progtype);
                     ems.addEvent(new Program(id, name, date, budget, progtype, eventType));
                 } else if(eventType == "Session") {
-                    string speaker; cin.ignore(); getline(cin,speaker);
+                    string speaker;
+                    cout<<"Enter speaker name: ";
+                    cin.ignore(); getline(cin,speaker);
                     ems.addEvent(new Session(id, name, date, budget, speaker, eventType));
                 } else {
                     cout << "Invalid event type!" << endl;
@@ -705,12 +824,10 @@ void adminDashboard(User* user, EventManager &ems){
 
 int main(){
     EventManager ems;
-
+    ems.loadData();
     // Competition* c1 = new Competition(1,"codecon","23-10-2003",5000.0,500.0,"Competition");
-    // Program* p1 = new Program(2,"lund","24-10-2003",8000.00,"measure","Program");
-    // Session* s1 = new Session(3,"gay talks","25-10-2003",5000.00,"mega gay","Session");
 
-    Admin* a1 = new Admin(69,"metro","metro@gmail.com","metro@23","Admin");
+    Admin* a1 = new Admin(69,"metro","metro@gmail.com","metro23","Admin");
     ems.addUser(a1);
 
     // ems.addEvent(c1);
@@ -793,6 +910,7 @@ int main(){
 
     }
     
+    ems.saveData();
 
     return 0;
 }

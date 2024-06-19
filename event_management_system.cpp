@@ -186,6 +186,23 @@ public:
         return eventType;
     }
 
+    void addGuest(string guest){
+        guests.push_back(guest);
+    }
+    void showGuests(){
+        for(int i = 0; i<guests.size(); i++){
+            cout<<i+1<<". "<<guests[i]<<endl;
+        }
+        cout<<endl;
+    }
+    bool delGuest(int ind){
+        if(ind>=1 && ind<=guests.size()){
+            guests.erase(guests.begin()+(ind-1));
+            return true;
+        }
+        return false;
+    }
+
     virtual void viewEventDetails(){
         cout<<"Event Type: "<<eventType<<endl;
         cout<<"Event ID: "<<eventID<<endl;
@@ -197,8 +214,11 @@ public:
             cout<<"No Guests!";
         }
         else{
-            for(auto it: guests){
-                cout<<it<<" ";
+            for(int i = 0; i<guests.size(); i++){
+                if(i==guests.size()-1){
+                    cout<<guests[i]; continue;
+                }
+                cout<<guests[i]<<", ";
             }
         }
         cout<<endl;
@@ -228,16 +248,64 @@ public:
             ff = 0;
         }
 
+        while(1){
+            cout<<"Enter 1 to edit guest list otherwise 0 to continue: "; cin>>ff;
+            if(ff == 1){
+                cout<<"Current Guests list: "<<endl;
+                showGuests();
+                int choice;
+                cout<<"1. Add guests"<<endl;
+                cout<<"2. Delete guests"<<endl;
+                cout<<"3. Edit guest info"<<endl;
+                cout<<"Enter choice: "; cin>>choice;
+                if(choice == 1){
+                    string g;
+                    cout<<"Enter Guest name: ";
+                    cin.ignore();
+                    getline(cin,g);
+                    addGuest(g);
+                }
+                else if(choice == 2){
+                    int ind;
+                    cout<<"Enter Guest index to delete: "; cin>>ind;
+                    if(delGuest(ind)){
+                        cout<<"Guest deleted successfully!"<<endl;
+                    }
+                    else{
+                        cout<<"No such Guest exists!"<<endl;
+                    }
+                }
+                else if(choice == 3){
+                    int ind;
+                    cout<<"Enter Guest index to edit: "; cin>>ind;
+                    if(ind>=1 && ind<=guests.size()){
+                        string ng;
+                        cout<<"Enter new name: ";
+                        cin.ignore();
+                        getline(cin,ng);
+                        guests[ind-1] = ng;
+                    }
+                    else{
+                        cout<<"Invalid index!"<<endl;
+                    }
+                }
+                else{
+                    cout<<"Wrong choice!"<<endl;
+                }
+            }
+            else{
+                break;
+            }
+        }
+
         eventName = newname;
         eventDate = date;
         budget = bud;
     }
 
-    void addGuest(string guest){
-        guests.push_back(guest);
-    }
+    
 
-    void viewEventDetailsForParticipant(){
+    virtual void viewEventDetailsForParticipant(){
         cout<<"|"<<"Event Name: "<<eventName<<endl;
         cout<<"|"<<"Event Type: "<<eventType<<endl;
         cout<<"|"<<"Event Date: "<<eventDate<<endl;
@@ -247,9 +315,16 @@ public:
 
     virtual void saveToFile(ofstream &fout){
         fout<<eventID<<','<<eventName<<','<<eventDate<<','<<budget<<','<<eventType;
+        
     }
-    virtual void loadFromFile(ifstream &fin){
-        cout<<"pussy"<<endl;
+    virtual void loadFromFile(istringstream &ss){
+        string token;
+        getline(ss,token,',');
+        int num = stoi(token);
+        for(int i = 0; i<num; i++){
+            getline(ss,token,',');
+            guests.push_back(token);
+        }
     }
 };
 
@@ -263,12 +338,10 @@ public:
         Event::viewEventDetails();
         cout << "Prize: " << prize << endl;
     }
-    void viewPrize(){
-        cout << "Prize: " << prize << endl;
-    }
-    void viewCompetitionDetailsForParticipant(){
-        viewEventDetailsForParticipant();
-        cout<<"|"; viewPrize();
+    
+    void viewEventDetailsForParticipant(){
+        Event::viewEventDetailsForParticipant();
+        cout<<"|Prize: "<<prize<<endl;
     }
 
     void editEventDetails() override{
@@ -286,7 +359,11 @@ public:
 
     void saveToFile(ofstream &fout) override{
         Event::saveToFile(fout);
-        fout<<','<<prize<<endl;
+        fout<<','<<prize<<','<<guests.size();
+        for(int i = 0; i<guests.size(); i++){
+            fout<<','<<guests[i];
+        }
+        fout<<endl;
     }
     
 };
@@ -301,12 +378,10 @@ public:
         Event::viewEventDetails();
         cout << "Program Type: " << programType << endl;
     }
-    void viewProgramType(){
-        cout << "Program Type: " << programType << endl;
-    }
-    void viewProgramDetailsForParticipant(){
-        viewEventDetailsForParticipant();
-        cout<<"|"; viewProgramType();
+    
+    void viewEventDetailsForParticipant(){
+        Event::viewEventDetailsForParticipant();
+        cout<<"|Program Type: "<<programType<<endl;
     }
 
     void editEventDetails() override{
@@ -326,7 +401,11 @@ public:
 
     void saveToFile(ofstream &fout) override{
         Event::saveToFile(fout);
-        fout<<','<<programType<<endl;
+        fout<<','<<programType<<','<<guests.size();
+        for(int i = 0; i<guests.size(); i++){
+            fout<<','<<guests[i];
+        }
+        fout<<endl;
     }
 
 };
@@ -341,12 +420,10 @@ public:
         Event::viewEventDetails();
         cout << "Speaker: " << speaker << endl;
     }
-    void viewSpeaker(){
-        cout << "Speaker: " << speaker << endl;
-    }
-    void viewSessionDetailsForParticipant(){
-        viewEventDetailsForParticipant();
-        cout<<"|"; viewSpeaker();
+    
+    void viewEventDetailsForParticipant(){
+        Event::viewEventDetailsForParticipant();
+        cout<<"|Speaker: "<<speaker<<endl;
     }
 
     void editEventDetails() override{
@@ -367,7 +444,11 @@ public:
 
     void saveToFile(ofstream &fout) override{
         Event::saveToFile(fout);
-        fout<<','<<speaker<<endl;
+        fout<<','<<speaker<<','<<guests.size();
+        for(int i = 0; i<guests.size(); i++){
+            fout<<','<<guests[i];
+        }
+        fout<<endl;
     }
 
 };
@@ -522,6 +603,7 @@ public:
             int eid;
             string ename, edate, etype;
             double ebud;
+            
 
             istringstream ss(line);
             string token;
@@ -555,6 +637,7 @@ public:
 
                 event = new Session(eid,ename,edate,ebud,spk,etype);
             }
+            event->loadFromFile(ss);
 
             events.push_back(event);
         }
@@ -645,19 +728,7 @@ void participantDashboard(User* user, EventManager ems){
                 }
                 for(auto it: vid){
                     Event* regevent = ems.findEventId(it);
-                    Competition* c1 = NULL; Program* p1 = NULL; Session* s1 = NULL;
-                    if(regevent->getEventType() == "Competition"){
-                        c1 = dynamic_cast<Competition*>(regevent);
-                        c1->viewCompetitionDetailsForParticipant();
-                    }
-                    else if(regevent->getEventType() == "Program"){
-                        p1 = dynamic_cast<Program*>(regevent);
-                        p1->viewProgramDetailsForParticipant();
-                    }
-                    else{
-                        s1 = dynamic_cast<Session*>(regevent);
-                        s1->viewSessionDetailsForParticipant();
-                    }
+                    regevent->viewEventDetailsForParticipant();
                     cout<<endl;
                 }
 
@@ -765,6 +836,8 @@ void adminDashboard(User* user, EventManager &ems){
                     if(!ems.findEventId(id)) break;
                 }
                 
+                Event* e = NULL;
+                
                 cout << "Enter Event Name: "; cin.ignore(); getline(cin, name);
                 cout << "Enter Event Date: "; getline(cin, date);
                 cout << "Enter Event Budget: "; cin >> budget;
@@ -773,19 +846,31 @@ void adminDashboard(User* user, EventManager &ems){
                 if(eventType == "Competition") {
                     double prize;
                     cout << "Enter Prize: "; cin >> prize;
-                    ems.addEvent(new Competition(id, name, date, budget, prize, eventType));
+                    e = new Competition(id, name, date, budget, prize, eventType);
+                    ems.addEvent(e);
                 } else if(eventType == "Program") {
                     string progtype; 
                     cout<<"Enter program type: ";
                     cin.ignore(); getline(cin,progtype);
-                    ems.addEvent(new Program(id, name, date, budget, progtype, eventType));
+                    e = new Program(id, name, date, budget, progtype, eventType);
+                    ems.addEvent(e);
                 } else if(eventType == "Session") {
                     string speaker;
                     cout<<"Enter speaker name: ";
                     cin.ignore(); getline(cin,speaker);
-                    ems.addEvent(new Session(id, name, date, budget, speaker, eventType));
+                    e = new Session(id, name, date, budget, speaker, eventType);
+                    ems.addEvent(e);
                 } else {
                     cout << "Invalid event type!" << endl;
+                    break;
+                }
+                int num; cout<<"Number of Guests: "; cin>>num;
+                cin.ignore();
+                string g;
+                for(int i = 0; i<num; i++){
+                    cout<<"Enter guest name: ";
+                    getline(cin,g);
+                    e->addGuest(g);
                 }
 
                 cout << "Event added successfully!" << endl;
